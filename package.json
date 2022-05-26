@@ -1,3 +1,37 @@
 {
-  "name": "hardhat-project"
+  "name": "hardhat-project",
+  "description": "This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.",
+  "version": "1.0.0",
+  "main": "addresses.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://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@github.com/suropark/vote-auction-contracts.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/suropark/vote-auction-contracts/issues"
+  },
+  "homepage": "https://github.com/suropark/vote-auction-contracts#readme",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.5",
+    "@openzeppelin/contracts": "^4.4.2",
+    "@openzeppelin/contracts-upgradeable": "^4.4.2",
+    "@openzeppelin/hardhat-upgrades": "^1.14.0",
+    "ethers": "^5.5.4",
+    "hardhat": "^2.8.4",
+    "mocha": "^9.1.3",
+    "prettier": "^2.4.1",
+    "prettier-plugin-solidity": "^1.0.0-beta.18"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.1"
+  }
 }

@@ -1,5 +1,5 @@
-require("dotenv").config();
-require("@nomiclabs/hardhat-ethers");
+require('dotenv').config();
+require('@nomiclabs/hardhat-ethers');
 // require("@openzeppelin/hardhat-upgrades");
 
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
@@ -12,7 +12,7 @@ const PRIVATE_KEY = process.env.PRIVATE_KEY;
  */
 module.exports = {
   solidity: {
-    version: "0.8.3",
+    version: '0.8.3',
     settings: {
       // evmVersion: 'istanbul',
       optimizer: {
@@ -23,18 +23,18 @@ module.exports = {
   },
   networks: {
     baobab: {
-      url: "https://kaikas.baobab.klaytn.net:8651/",
-      gasPrice: 750000000000,
+      url: 'https://kaikas.baobab.klaytn.net:8651/',
+      gasPrice: 250000000000,
       accounts: [PRIVATE_KEY],
       chainId: 1001,
     },
     cypress: {
-      url: "https://public-node-api.klaytnapi.com/v1/cypress",
+      url: 'https://public-node-api.klaytnapi.com/v1/cypress',
       chainId: 8217, //Klaytn mainnet's network id
       accounts: [PRIVATE_KEY],
       gas: 8500000,
       timeout: 3000000,
-      gasPrice: 750000000000,
+      gasPrice: 250000000000,
     },
   },
 };
