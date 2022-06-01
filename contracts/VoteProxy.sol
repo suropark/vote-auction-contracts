@@ -6,10 +6,17 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract VoteProxy is Ownable {
     //
-    address public auction;
+    // address public auction;
 
-    function setAuction(address _auction) external onlyOwner {
-        auction = _auction;
+    mapping(bytes32 => address) public auction;
+
+    constructor(address _clsAuction) {
+        auction[bytes32("cls")] = _clsAuction;
+    }
+
+    function setAuction(bytes32 _govTok, address _auction) external onlyOwner {
+        // auction = _auction;
+        auction[_govTok] = _auction;
     }
 
     function execute(

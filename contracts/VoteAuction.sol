@@ -19,10 +19,11 @@ contract VoteAuction is Ownable, ReentrancyGuard {
     address public clsPoolVote;
 
     address public teamWallet;
+    address public rewardDistributor;
 
     // fee
     uint256 public fee = 400;
-    uint256 public DENOMINATOR = 10000;
+    uint256 public constant DENOMINATOR = 10000;
 
     // auction
     uint256 public priceFallsDuration = 1 hours;
@@ -62,6 +63,9 @@ contract VoteAuction is Ownable, ReentrancyGuard {
         uint256 team = (totalSellPrice * fee) / DENOMINATOR;
         (bool teamSuc, ) = teamWallet.call{value: team}("");
         require(teamSuc, "team fee failed");
+        // reward
+        (bool rewardSuc, ) = rewardDistributor.call{value: payable(address(this)).balance}("");
+        require(rewardSuc, "reward failed");
     }
 
     function clsPrice() public view returns (uint256) {
@@ -134,5 +138,16 @@ contract VoteAuction is Ownable, ReentrancyGuard {
         teamWallet = _teamWallet;
     }
 
+    function setRewardDistributor(address _rewardDistributor) public onlyOwner {
+        rewardDistributor = _rewardDistributor;
+    }
+
+    function setFee(uint256 _fee) public onlyOwner {
+        require(_fee <= 10000, "fee must be less than 1000 = 10% ");
+        fee = _fee;
+    }
+
     receive() external payable {}
+
+    /* ========== EVENTS ========== */
 }
