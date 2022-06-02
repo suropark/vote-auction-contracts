@@ -5,19 +5,7 @@ pragma solidity ^0.8.3;
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract VoteProxy is Ownable {
-    //
-    // address public auction;
-
-    mapping(bytes32 => address) public auction;
-
-    constructor(address _clsAuction) {
-        auction[bytes32("cls")] = _clsAuction;
-    }
-
-    function setAuction(bytes32 _govTok, address _auction) external onlyOwner {
-        // auction = _auction;
-        auction[_govTok] = _auction;
-    }
+    // owner should be auction contract to execute
 
     function execute(
         address _to,

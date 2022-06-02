@@ -14,6 +14,7 @@ interface IVoteProxy {
     ) external returns (bool, bytes memory);
 }
 
+// CLS Vote Auction - DutchAuction.
 contract VoteAuction is Ownable, ReentrancyGuard {
     address public voter;
     address public clsPoolVote;
@@ -49,9 +50,13 @@ contract VoteAuction is Ownable, ReentrancyGuard {
         uint256 totalSellPrice = clsPrice() * amount;
         require(msg.value >= totalSellPrice, "value must be greater than or equal to totalSellPrice");
 
-        _vote(poolId, amount);
+        uint256 rId = IClsPoolVote(clsPoolVote).latestRoundId();
+
+        _vote(rId, poolId, amount);
 
         _distribute(totalSellPrice);
+
+        emit VoteSold(msg.sender, rId, poolId, amount, totalSellPrice);
     }
 
     function _distribute(uint256 totalSellPrice) internal {
@@ -107,14 +112,20 @@ contract VoteAuction is Ownable, ReentrancyGuard {
         votable = (IClsPoolVote(clsPoolVote).getVotablePoolIds(rId));
     }
 
-    function _vote(uint256 poolId, uint256 voteAmt) internal {
-        uint256 rId = IClsPoolVote(clsPoolVote).latestRoundId();
+    function voteStatus(uint256 _roundId) public view returns (IClsPoolVote.receipt memory) {
+        return IClsPoolVote(clsPoolVote).getReceipt(_roundId, voter);
+    }
 
+    function _vote(
+        uint256 roundId,
+        uint256 poolId,
+        uint256 voteAmt
+    ) internal {
         // 1. roundId, 2. poolId, 3. voteAmount
         (bool suc, ) = IVoteProxy(voter).execute(
             clsPoolVote,
             0,
-            abi.encodeWithSignature("castVote(uint256, uint256, uint256)", rId, poolId, voteAmt)
+            abi.encodeWithSignature("castVote(uint256, uint256, uint256)", roundId, poolId, voteAmt)
         );
 
         require(suc, "vote failed");
@@ -142,6 +153,10 @@ contract VoteAuction is Ownable, ReentrancyGuard {
         rewardDistributor = _rewardDistributor;
     }
 
+    function setPriceFallsDuration(uint256 _priceFallsDuration) public onlyOwner {
+        priceFallsDuration = _priceFallsDuration;
+    }
+
     function setFee(uint256 _fee) public onlyOwner {
         require(_fee <= 10000, "fee must be less than 1000 = 10% ");
         fee = _fee;
@@ -150,4 +165,6 @@ contract VoteAuction is Ownable, ReentrancyGuard {
     receive() external payable {}
 
     /* ========== EVENTS ========== */
+
+    event VoteSold(address indexed buyer, uint256 roundId, uint256 poolId, uint256 voteAmount, uint256 sellPrice);
 }
