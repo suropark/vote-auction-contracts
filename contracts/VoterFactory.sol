@@ -6,6 +6,17 @@ import "./VoteProxy.sol";
 import "./interfaces/IClsPoolVote.sol";
 
 // for reward Distributing
+
+// 하나의 delgatee로 voter 역할을 하게 하면 auction 과정은 손 쉬우나
+//  delegate한 address, vote amount를 온체인에서 라운드마다 계산할 수 있는 방법이 떠오르지 않음
+// 각각의 address에 delegate 할 수 있는 contract를 deploy하고 factory에서 이를 관리하는 방식으로 하면
+// address[] 를 순회하면서 총 votes 를 계산할 수 있고, 각각 유저의 vote amount를 추적할 수 있다
+// vote 판매 대금을 분배하기 위해서 생각해본 방법 ?
+// voterFactory를 쓰는 voteAuction을 만들어야 할듯
+
+// 1. voterFactory에서 voter contract deploy(각각의 유저마다)
+// 2. 유저는 각자의 voter에 delegate
+// 3. voteAuction에서는 cls 개수를 합쳐서 판매 및 계산
 contract VoterFactory {
     address public clsPoolVote;
     address public auction;
