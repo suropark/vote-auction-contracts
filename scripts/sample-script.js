@@ -22,6 +22,9 @@ async function main() {
   // console.log("Greeter deployed to:", greeter.address);
 
   const poolVote = await hre.ethers.getContractAt('IClsPoolVote', '0x6Ee1A9D6C2C9E4F08eFB82372bAD7ffa89fe99C9');
+
+  await poolVote.getReceipt('5', '0x052734DCcaE11dd0C3dF61Ab2b5FDa8FC8207E63').then(console.log);
+  // await poolVote.latestRoundId().then(console.log);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
