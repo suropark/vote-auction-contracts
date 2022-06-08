@@ -2,9 +2,9 @@
 
 pragma solidity ^0.8.3;
 
+import "./VoteProxy.sol";
 import "./interfaces/IClsPoolVote.sol";
 import "./interfaces/IAuctionRewarder.sol";
-import "./interfaces/IVoterFactory.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
@@ -12,25 +12,41 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 contract VoteAuction is Ownable, ReentrancyGuard {
     address public clsPoolVote;
     address public auctionRewarder;
-    address public voterFactory;
+    address public voter;
     // fee
     address public teamWallet;
     uint256 public fee = 400;
     uint256 public constant DENOMINATOR = 10000;
 
     // auction
-    uint256 public priceFallsDuration = 1 hours;
+    uint256 public priceFallsDuration = 6 hours;
     uint256 public basePrice = 1e17; // 1cls = 0.1klay
     uint256 public priceLowLimit = 1000;
 
     constructor(address _team) {
         clsPoolVote = 0x6Ee1A9D6C2C9E4F08eFB82372bAD7ffa89fe99C9;
         teamWallet = _team;
+
+        voter = address(new VoteProxy());
     }
 
-    function buyCls(uint256 amount, uint256 poolId) public payable nonReentrant {
+    function buyCls(
+        uint256 amount,
+        uint256 poolId,
+        bool fillAmount
+    ) public payable nonReentrant {
         require(msg.value > 0, "value must be greater than 0");
 
+        uint256 remain = remainingVote();
+        if (fillAmount) {
+            require(remain > amount, "not enough vote");
+        }
+
+        uint256 voteAmt = remain > amount ? amount : remain - amount;
+        _buyCls(voteAmt, poolId);
+    }
+
+    function _buyCls(uint256 amount, uint256 poolId) internal {
         uint256 currentPrice = clsPrice();
 
         uint256 totalSellPrice = currentPrice * amount;
@@ -38,11 +54,11 @@ contract VoteAuction is Ownable, ReentrancyGuard {
 
         uint256 rId = IClsPoolVote(clsPoolVote).latestRoundId();
 
-        uint256 clsVoted = _vote(rId, poolId, amount);
+        _vote(rId, poolId, amount);
 
-        _distribute(rId, clsVoted * currentPrice);
+        _distribute(rId, totalSellPrice);
 
-        emit VoteSold(msg.sender, rId, poolId, amount, currentPrice * clsVoted);
+        emit VoteSold(msg.sender, rId, poolId, amount, totalSellPrice);
     }
 
     function _distribute(uint256 roundId, uint256 soldPrice) internal {
@@ -60,6 +76,20 @@ contract VoteAuction is Ownable, ReentrancyGuard {
         IAuctionRewarder(auctionRewarder).notifyReward(address(0), roundId, address(this).balance);
     }
 
+    function _vote(
+        uint256 roundId,
+        uint256 poolId,
+        uint256 voteAmt
+    ) internal {
+        (bool suc, ) = VoteProxy(voter).execute(
+            clsPoolVote,
+            0,
+            abi.encodeWithSignature("castVote(uint256, uint256, uint256)", roundId, poolId, voteAmt)
+        );
+        require(suc, "vote failed");
+    }
+
+    /* ===== VIEW FUNCTION ===== */
     function clsPrice() public view returns (uint256) {
         uint256 rId = IClsPoolVote(clsPoolVote).latestRoundId();
 
@@ -73,14 +103,13 @@ contract VoteAuction is Ownable, ReentrancyGuard {
 
         uint256 price = basePrice;
         for (uint256 i = 0; i < t; i++) {
-            price = (price * 9000) / DENOMINATOR;
+            price = (price * 9000) / DENOMINATOR; // 10%씩 감소
         }
 
         if (price < (basePrice * priceLowLimit) / DENOMINATOR) {
             price = basePrice;
         }
 
-        // uint256 totalVotingTime = IClsPoolVote(clsPoolVote).getEndTime(rId) - IClsPoolVote(clsPoolVote).getStartTime(rId);
         return price;
     }
 
@@ -90,12 +119,18 @@ contract VoteAuction is Ownable, ReentrancyGuard {
         votable = (IClsPoolVote(clsPoolVote).getVotablePoolIds(rId));
     }
 
-    function _vote(
-        uint256 roundId,
-        uint256 poolId,
-        uint256 voteAmt
-    ) internal returns (uint256) {
-        return IVoterFactory(voterFactory).vote(roundId, poolId, voteAmt);
+    function totalVote() public view returns (uint256) {
+        uint256 roundId = IClsPoolVote(clsPoolVote).latestRoundId();
+
+        return (IClsPoolVote(clsPoolVote).getClsAvailable(roundId, voter) / 1e18) * 1e18; // to integer
+    }
+
+    function remainingVote() public view returns (uint256) {
+        uint256 roundId = IClsPoolVote(clsPoolVote).latestRoundId();
+
+        IClsPoolVote.receipt memory receipt = IClsPoolVote(clsPoolVote).getReceipt(roundId, voter);
+
+        return totalVote() - receipt.totalUserVotes;
     }
 
     /* ===== ADMIN FUNCTION ===== */

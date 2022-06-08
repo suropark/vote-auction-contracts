@@ -89,15 +89,15 @@ contract VoterFactory {
 
 
         uint256 voted;
-    for (uint256 i = 0; i < totalVoter; i++) {
+    // for (uint256 i = 0; i < totalVoter; i++) {
         
-        (bool suc, ) = VoteProxy(voter).execute(
-            clsPoolVote,
-            0,
-            abi.encodeWithSignature("castVote(uint256, uint256, uint256)", roundId, poolId, voteAmt)
-        );
-        require(suc, "vote failed");
-    }
+    //     (bool suc, ) = VoteProxy(voter).execute(
+    //         clsPoolVote,
+    //         0,
+    //         abi.encodeWithSignature("castVote(uint256, uint256, uint256)", roundId, poolId, voteAmt)
+    //     );
+    //     require(suc, "vote failed");
+    // }
 
     }
 
