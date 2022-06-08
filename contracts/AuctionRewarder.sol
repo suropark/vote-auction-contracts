@@ -28,7 +28,7 @@ contract AuctionRewarder {
         _;
     }
 
-    function nodifyReward(
+    function notifyReward(
         address reward,
         uint256 roundId,
         uint256 amount

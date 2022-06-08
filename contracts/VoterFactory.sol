@@ -23,8 +23,9 @@ contract VoterFactory {
 
     mapping(address => address) public voter;
     address[] public voters;
-
     uint256 public totalVoter;
+
+    /* */
 
     function createVoter() public {
         require(voter[msg.sender] == address(0), "already created");
@@ -76,6 +77,38 @@ contract VoterFactory {
             used = used + receipt.totalUserVotes;
         }
         return used;
+    }
+
+    /* Vote */
+    function vote(
+        uint256 roundId,
+        uint256 poolId,
+        uint256 voteAmt
+    ) external returns (uint256 voted) {
+        require(msg.sender == auction, "not auction");
+
+
+        uint256 voted;
+    for (uint256 i = 0; i < totalVoter; i++) {
+        
+        (bool suc, ) = VoteProxy(voter).execute(
+            clsPoolVote,
+            0,
+            abi.encodeWithSignature("castVote(uint256, uint256, uint256)", roundId, poolId, voteAmt)
+        );
+        require(suc, "vote failed");
+    }
+
+    }
+
+    /* ====================== ADMIN FUNCITON ====================== */
+
+    function setClsPoolVote(address _clsPoolVote) public {
+        clsPoolVote = _clsPoolVote;
+    }
+
+    function setAuction(address _auction) public {
+        auction = _auction;
     }
 
     receive() external payable {}

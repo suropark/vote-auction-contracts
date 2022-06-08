@@ -18,4 +18,6 @@ interface IVoterFactory {
     function getRemainingCls() external view returns (uint256);
 
     function getUsedCls() external view returns (uint256);
+
+    function vote()
 }
